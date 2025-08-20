@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mori: Sandbox • Projects</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f8fafc;
+      --ink:#0f172a; --muted:#475569;
+      --panel-shadow: 0 8px 24px rgba(15,23,42,0.06);
+      --radius: 18px;
+      --navH: 72px;
+      --topOffset: 150px;
+      --accent:#3b82f6;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:'Inter','Plus Jakarta Sans',ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--ink); background:var(--bg); overflow-x:hidden;
+    }
+
+    /* ===== Background aura (same as home) ===== */
+    .aura{position:fixed; inset:0; z-index:-2; background:
+      radial-gradient(1300px 900px at 18% 22%, rgba(96,165,250,0.38), transparent 62%),
+      radial-gradient(1300px 900px at 82% 78%, rgba(255,153,79,0.40), transparent 62%),
+      radial-gradient(900px 1000px at 50% 110%, rgba(255,200,140,0.22), transparent 64%),
+      var(--bg);
+    }
+    .aura::before,.aura::after{
+      content:""; position:absolute; inset:-28%; border-radius:50%;
+      filter: blur(120px); mix-blend-mode:screen; opacity:.85;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(96,165,250,0.42), transparent 60%),
+        radial-gradient(circle at 72% 72%, rgba(255,153,79,0.44), transparent 60%);
+      animation:radiate 24s ease-in-out infinite;
+    }
+    .aura::after{animation-duration:34s; animation-direction:reverse; opacity:.6}
+    @keyframes radiate{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.08) rotate(12deg)}}
+
+    /* ===== Nav (carry-over) ===== */
+    .nav{
+      position:fixed; top:0; left:0; right:0; z-index:1000;
+      display:flex; justify-content:center;
+      background: rgba(255,255,255,0);
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+    }
+    .nav-inner{ width:min(1120px,96%); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px; }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:600; letter-spacing:.2px }
+    .brand svg{ width:22px; height:22px }
+    .brand-name{ opacity:.92 }
+    .menu{ display:flex; gap:8px; align-items:center; isolation:isolate; position:relative; }
+    .item{ position:relative; padding-bottom:12px }
+    .nav-btn{
+      appearance:none; border:1px solid transparent; background:transparent; color:var(--ink);
+      font-weight:500; letter-spacing:.2px; font-size:14px; padding:10px 14px; border-radius:12px; cursor:pointer;
+      transition: color .12s ease, opacity .12s ease, background .12s ease, box-shadow .12s ease; opacity:.92;
+    }
+    .nav-btn:hover{ opacity:.75; background: rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.28); }
+    .dropdown{
+      position:absolute; top: calc(80% + 6px); left:0; min-width:240px;
+      background: linear-gradient(to bottom right, rgba(148,163,184,.22), rgba(255,255,255,.54));
+      border:1px solid rgba(255,255,255,0.82); border-radius:16px;
+      box-shadow:0 18px 28px rgba(15,23,42,0.08), 0 2px 6px rgba(15,23,42,0.05);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      padding:6px; opacity:0; transform: translateY(8px); visibility:hidden; pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease; z-index:10;
+    }
+    .item:hover .dropdown, .item:focus-within .dropdown{ opacity:1; transform: translateY(0); visibility:visible; pointer-events:auto; }
+    .drop-link{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; color:inherit; text-decoration:none; font-size:13px; }
+    .drop-link:hover{ background: linear-gradient(to bottom right, rgba(148,163,184,.18), rgba(255,255,255,.78)); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.92), 0 6px 14px rgba(15,23,42,0.06); backdrop-filter: blur(6px); }
+
+    /* ===== Layout ===== */
+    .wrap{ max-width:1120px; margin:0 auto; padding: calc(var(--navH) + 24px + var(--topOffset)) 18px 96px; }
+
+    /* ===== Header / Breadcrumbs ===== */
+    .pagehead{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding: 12px 4px 4px; }
+    .crumbs{ display:flex; gap:8px; align-items:center; color:var(--muted); font-size:13px; }
+    .crumbs a{ color:inherit; text-decoration:none; }
+    .crumbs .sep{ opacity:.5 }
+    .title{ margin:6px 0 0; font-size: clamp(28px, 4.8vw, 40px); letter-spacing:-.02em; line-height:1.08; }
+
+    .subnav{
+      position:sticky; top: calc(var(--navH) + 12px);
+      z-index:5; margin-top:16px; border-radius: var(--radius); padding:12px;
+      background: linear-gradient(to bottom right, rgba(148,163,184,.16), rgba(255,255,255,.66));
+      border:1px solid rgba(255,255,255,0.7); box-shadow: var(--panel-shadow); backdrop-filter: blur(8px);
+    }
+    .subgrid{ display:grid; grid-template-columns: 1.2fr .8fr .6fr auto; gap:12px; align-items:center; }
+    .search{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; }
+    .search input{ flex:1; border:none; outline:none; font-size:14px; background:transparent; }
+    .filters{ display:flex; gap:8px; flex-wrap:wrap; }
+    .chip{ font-size:12px; padding:6px 10px; border-radius:999px; cursor:pointer; user-select:none; border:1px solid #e5e7eb; background:#fff; color:#334155; }
+    .chip[data-active="true"]{ background: rgba(59,130,246,.10); border-color: rgba(59,130,246,.28); color:#1e3a8a; }
+    .sort{ display:flex; gap:8px; align-items:center; }
+    .select{
+      appearance:none; border:1px solid #e5e7eb; background:#fff; padding:9px 12px; border-radius:12px; font-size:14px;
+    }
+    .btn{
+      appearance:none; border:1px solid rgba(255,255,255,.92); background: linear-gradient(to bottom right, rgba(148,163,184,.16), rgba(255,255,255,.72));
+      padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer; box-shadow: var(--panel-shadow);
+      transition:.15s; backdrop-filter: blur(8px);
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(15,23,42,.10); }
+
+    /* ===== Project grid ===== */
+    .panel{
+      margin-top: 18px; border-radius: var(--radius); padding:18px;
+      background: linear-gradient(to bottom right, rgba(148,163,184,.16), rgba(255,255,255,.66));
+      border:1px solid rgba(255,255,255,0.7); box-shadow: var(--panel-shadow); backdrop-filter: blur(8px);
+    }
+    .grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:14px; }
+    .card{
+      border-radius:16px; padding:18px; background:#fff; border:1px solid #e5e7eb; box-shadow: var(--panel-shadow);
+      transition:.15s; cursor:pointer; position:relative; isolation:isolate;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow: 0 12px 28px rgba(15,23,42,.10); }
+    .card h4{ margin:0 0 6px; font-size:17px }
+    .meta{ font-size:13px; color:#475569 }
+    .tags{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap }
+    .badge{ font-size:12px; padding:6px 10px; border-radius:999px; }
+    .badge--orange{background: rgba(249,115,22,.10); border:1px solid rgba(249,115,22,.28); color:#7c2d12}
+    .badge--blue{background: rgba(59,130,246,.10); border:1px solid rgba(59,130,246,.26); color:#1e3a8a}
+    .badge--emerald{background: rgba(16,185,129,.10); border:1px solid rgba(16,185,129,.26); color:#065f46}
+    .badge--teal{background: rgba(20,184,166,.10); border:1px solid rgba(20,184,166,.26); color:#115e59}
+    .badge--purple{background: rgba(139,92,246,.10); border:1px solid rgba(139,92,246,.26); color:#4c1d95}
+    .badge--gray{background: rgba(148,163,184,.12); border:1px solid rgba(148,163,184,.28); color:#334155}
+
+    /* ===== Empty state ===== */
+    .empty{
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:40px 10px; text-align:center; color:#475569;
+    }
+
+    /* ===== Pagination ===== */
+    .pager{ display:flex; align-items:center; justify-content:space-between; margin-top:14px; gap:10px; }
+    .pages{ display:flex; gap:6px; flex-wrap:wrap; }
+    .pagebtn{
+      padding:8px 12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-size:13px;
+    }
+    .pagebtn[aria-current="page"]{ border-color: rgba(59,130,246,.28); background: rgba(59,130,246,.08); }
+
+    /* ===== Footer (carry-over) ===== */
+    .footer{ margin-top: 40px; padding: 32px 18px 20px; background: rgba(255,255,255,0.66);
+      border-top: 1px solid rgba(255,255,255,0.8); box-shadow: 0 -6px 18px rgba(15,23,42,0.04) inset;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    }
+    .footer-inner{ max-width:1120px; margin:0 auto; }
+    .footer-columns{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; }
+    .footer-col h4{ margin:0 0 10px; font-weight:700; font-size:14px; letter-spacing:.2px; color:#0f172a; }
+    .footer-col ul{ list-style:none; margin:0; padding:0; }
+    .footer-col li{ margin:8px 0; }
+    .footer-col a{ text-decoration:none; color:#334155; font-size:14px; transition: color .15s ease; }
+    .footer-col a:hover{ color:#0f172a; }
+    .footer-bottom{ margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(15,23,42,0.08); text-align:center; color:#64748b; font-size:12px; }
+
+    @media (max-width: 1024px){ .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } .subgrid{ grid-template-columns: 1fr; gap:10px; } }
+    @media (max-width: 640px){
+      .wrap{ padding-bottom:72px; }
+      .grid{ grid-template-columns: 1fr; }
+      .footer-columns{ grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce){ .aura::before,.aura::after{animation:none} }
+  </style>
+</head>
+<body>
+  <div class="aura" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav class="nav" id="topNav">
+    <div class="nav-inner">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.88L18.18 22 12 18.77 5.82 22 7 14.15l-5-4.88 6.91-1.01L12 2z"/>
+        </svg>
+        <div class="brand-name">Mori: Sandbox</div>
+      </div>
+      <div class="menu">
+        <div class="item">
+          <button class="nav-btn" data-route="home">Home</button>
+        </div>
+        <div class="item" id="projectsItem">
+          <button class="nav-btn" aria-haspopup="true" aria-expanded="false">Projects</button>
+          <div class="dropdown" role="menu" aria-label="Projects">
+            <div id="projectsMenu"></div>
+            <div style="height:6px"></div>
+            <a class="drop-link" href="#" data-route="project-settings">Project Settings (new)</a>
+          </div>
+        </div>
+        <div class="item">
+          <button class="nav-btn" aria-haspopup="true" aria-expanded="false">Network</button>
+          <div class="dropdown" role="menu" aria-label="Network">
+            <a class="drop-link" href="#" data-route="explore">Explore</a>
+            <a class="drop-link" href="#" data-route="requests">Requests</a>
+            <a class="drop-link" href="#" data-route="messages">Messages</a>
+          </div>
+        </div>
+        <div class="item account">
+          <button class="nav-btn account-toggle" aria-haspopup="true" aria-expanded="false" style="display:flex;align-items:center;gap:10px;">
+            <span>Account</span>
+            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=96&auto=format&fit=crop" alt="Profile" class="pfp" width="24" height="24" style="width:24px;height:24px;border-radius:50%;">
+          </button>
+          <div class="dropdown" role="menu" aria-label="Account">
+            <a class="drop-link" href="#" data-route="profile">Profile</a>
+            <a class="drop-link" href="#" data-route="settings">Settings</a>
+            <a class="drop-link" href="#" data-route="notifications">Notifications</a>
+            <a class="drop-link" href="#" data-route="subscription">Subscription</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <header class="pagehead" role="banner">
+      <div>
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="#" data-route="home">Home</a> <span class="sep">/</span> <span>Projects</span>
+        </nav>
+        <h1 class="title">Projects</h1>
+        <p class="meta" id="countMeta">Loading…</p>
+      </div>
+      <button class="btn" data-route="new-project">+ New Project</button>
+    </header>
+
+    <!-- Sticky subnav: search / filters / sort -->
+    <section class="subnav" aria-label="Project controls">
+      <div class="subgrid">
+        <label class="search" aria-label="Search projects">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-3.9-3.9"></path></svg>
+          <input type="search" id="q" placeholder="Search by name, focus, or tag…" autocomplete="off"/>
+        </label>
+
+        <div class="filters" id="filterChips" role="group" aria-label="Filter by tag"></div>
+
+        <div class="sort">
+          <select id="sortBy" class="select" aria-label="Sort projects">
+            <option value="updated_desc">Recently updated</option>
+            <option value="updated_asc">Least recently updated</option>
+            <option value="name_asc">Name A–Z</option>
+            <option value="name_desc">Name Z–A</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn" id="clearFilters">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="panel" aria-labelledby="projectsTitle">
+      <h3 id="projectsTitle" style="margin:0 0 12px; font-size:16px; letter-spacing:.2px">All projects</h3>
+      <div class="grid" id="grid"></div>
+
+      <div id="empty" class="empty" style="display:none">
+        <div>No projects match your filters.</div>
+        <div class="meta">Try clearing filters or creating a new project.</div>
+        <div><button class="btn" data-route="new-project">Create project</button></div>
+      </div>
+
+      <div class="pager" id="pager" aria-label="Pagination" style="display:none">
+        <button class="btn" id="prevPage">Prev</button>
+        <div class="pages" id="pages"></div>
+        <button class="btn" id="nextPage">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-columns" aria-label="Footer navigation">
+        <nav class="footer-col" aria-labelledby="assistTitle">
+          <h4 id="assistTitle">Assistance</h4>
+          <ul>
+            <li><a href="#" data-route="guide">Sandbox Guide</a></li>
+            <li><a href="#" data-route="about">About Sandbox</a></li>
+            <li><a href="#" data-route="contact">Contact Us</a></li>
+            <li><a href="#" data-route="terms">Terms &amp; Policy</a></li>
+          </ul>
+        </nav>
+        <nav class="footer-col" aria-labelledby="productsTitle">
+          <h4 id="productsTitle">Products</h4>
+          <ul>
+            <li><a href="#" data-route="toolkits">Toolkits</a></li>
+            <li><a href="#" data-route="pricing">Subscription Pricing</a></li>
+            <li><a href="#" data-route="cancellation">Cancellation</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="footer-bottom">© <span id="year"></span> Mori: Sandbox</div>
+    </div>
+  </footer>
+
+  <script>
+    // Personalization
+    const USER_NAME = "Brayden";
+    document.querySelectorAll('#year').forEach(n=>n.textContent = new Date().getFullYear());
+
+    // Nav height -> push content down
+    function setNavHeight(){
+      const nav = document.getElementById('topNav');
+      if(!nav) return;
+      const h = Math.ceil(nav.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--navH', h+'px');
+    }
+    setNavHeight(); window.addEventListener('resize', setNavHeight);
+
+    // Demo toast + routing stub (same pattern as home)
+    function toast(msg){
+      const box=document.getElementById('toastbox')||(()=>{const b=document.createElement('div');b.id='toastbox';Object.assign(b.style,{position:'fixed',bottom:'22px',left:'50%',transform:'translateX(-50%)',zIndex:9999});document.body.appendChild(b);return b;})();
+      const n=document.createElement('div');n.textContent=msg;n.setAttribute('role','status');
+      n.style.cssText=`margin-top:8px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.95);color:#0f172a;box-shadow:0 10px 24px rgba(15,23,42,.10);backdrop-filter:blur(10px);font-weight:600;white-space:nowrap;opacity:0;transform:translateY(8px);transition:opacity .15s ease, transform .15s ease;`;
+      box.appendChild(n); requestAnimationFrame(()=>{n.style.opacity=1;n.style.transform='translateY(0)'}); setTimeout(()=>{n.style.opacity=0;n.style.transform='translateY(8px)';setTimeout(()=>n.remove(),200)},1400);
+    }
+    function demoRoute(path){ toast(`Routing to ${path}…`); }
+
+    document.addEventListener('click', e=>{
+      const routeEl=e.target.closest('[data-route]');
+      if(routeEl){ demoRoute(routeEl.dataset.route); }
+    });
+
+    // ===== Demo data (extended) =====
+    const CHIP_HUES = ["orange","blue","emerald","teal","purple","gray"];
+    const ALL = [
+      { id:"p1",  name:"Raflesia — Talent Graph",      tags:["Recruitment","Graph"],      updated_days:2,  focus:"Hiring pipeline MVP" },
+      { id:"p2",  name:"Campus Startup Hub",           tags:["Community"],                updated_days:5,  focus:"Mentor matching" },
+      { id:"p3",  name:"Jakarta Angels",               tags:["Fundraising","Network"],   updated_days:7,  focus:"Pitch deck v3" },
+      { id:"p4",  name:"Sandbox Jobs",                 tags:["Product"],                  updated_days:3,  focus:"Job board UI" },
+      { id:"p5",  name:"Investor CRM",                 tags:["Tools","Fundraising"],     updated_days:1,  focus:"Beta launch 0.9" },
+      { id:"p6",  name:"MatchGraph Routing",           tags:["ML","Graph"],               updated_days:0,  focus:"Intro acceptance +21%" },
+      { id:"p7",  name:"Mentor Marketplace",           tags:["Community","Product"],     updated_days:11, focus:"Profiles revamp" },
+      { id:"p8",  name:"Signal Rooms",                 tags:["Network"],                  updated_days:4,  focus:"Room health metrics" },
+      { id:"p9",  name:"Sandbox Docs",                 tags:["Docs","Productivity"],     updated_days:12, focus:"Search indexing" },
+      { id:"p10", name:"Onboarding Flow",              tags:["Product"],                  updated_days:8,  focus:"Activation experiments" },
+      { id:"p11", name:"Data Pipeline",                tags:["Infra"],                    updated_days:6,  focus:"dbt models v2" },
+      { id:"p12", name:"Growth Playbook",              tags:["Growth"],                   updated_days:9,  focus:"TOFU channels" }
+    ];
+
+    // Build Projects menu (like home)
+    const projectsMenu = document.querySelector('#projectsMenu');
+    if(projectsMenu){
+      projectsMenu.innerHTML = ALL.slice(0,6).map(p=>`<a class="drop-link" href="#" data-route="project:${p.id}">${p.name}</a>`).join('');
+    }
+
+    // ===== Controls =====
+    const grid = document.getElementById('grid');
+    const empty = document.getElementById('empty');
+    const pager = document.getElementById('pager');
+    const pagesEl = document.getElementById('pages');
+    const countMeta = document.getElementById('countMeta');
+
+    const q = document.getElementById('q');
+    const sortBy = document.getElementById('sortBy');
+    const filterChips = document.getElementById('filterChips');
+    const clearFilters = document.getElementById('clearFilters');
+
+    // Tag universe from data
+    const tagSet = Array.from(new Set(ALL.flatMap(p=>p.tags))).sort();
+    const activeTags = new Set();
+
+    tagSet.forEach(tag=>{
+      const chip = document.createElement('button');
+      chip.className='chip';
+      chip.textContent=tag;
+      chip.setAttribute('data-tag', tag);
+      chip.addEventListener('click', ()=>{
+        if(activeTags.has(tag)) activeTags.delete(tag); else activeTags.add(tag);
+        chip.dataset.active = activeTags.has(tag) ? 'true' : 'false';
+        render();
+      });
+      filterChips.appendChild(chip);
+    });
+
+    clearFilters.addEventListener('click', ()=>{
+      q.value='';
+      activeTags.clear();
+      filterChips.querySelectorAll('.chip').forEach(c=>c.dataset.active='false');
+      sortBy.value='updated_desc';
+      currentPage = 1;
+      render();
+    });
+    q.addEventListener('input', ()=>{ currentPage=1; render(); });
+    sortBy.addEventListener('change', ()=>{ currentPage=1; render(); });
+
+    // ===== Render =====
+    const PAGE_SIZE = 6;
+    let currentPage = 1;
+
+    function applyFilters(data){
+      const term = q.value.trim().toLowerCase();
+      let out = data.filter(p=>{
+        const matchesTerm = !term || [p.name, p.focus, ...(p.tags||[])].join(' ').toLowerCase().includes(term);
+        const matchesTags = activeTags.size===0 || (p.tags||[]).some(t=>activeTags.has(t));
+        return matchesTerm && matchesTags;
+      });
+
+      switch(sortBy.value){
+        case 'updated_asc':  out.sort((a,b)=> a.updated_days - b.updated_days); break; // least recent first
+        case 'updated_desc': out.sort((a,b)=> b.updated_days - a.updated_days); break;
+        case 'name_asc':     out.sort((a,b)=> a.name.localeCompare(b.name)); break;
+        case 'name_desc':    out.sort((a,b)=> b.name.localeCompare(a.name)); break;
+      }
+      return out;
+    }
+
+    function humanizeDays(d){
+      if(d===0) return 'Today';
+      if(d===1) return 'Yesterday';
+      if(d<7) return `${d}d ago`;
+      const w = Math.floor(d/7);
+      return `${w}w ago`;
+    }
+
+    function render(){
+      const filtered = applyFilters(ALL);
+      countMeta.textContent = `${filtered.length} project${filtered.length===1?'':'s'} • viewing ${PAGE_SIZE} per page`;
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if(currentPage>totalPages) currentPage=totalPages;
+      const start = (currentPage-1)*PAGE_SIZE;
+      const pageItems = filtered.slice(start, start+PAGE_SIZE);
+
+      grid.innerHTML = '';
+      pageItems.forEach((p,idx)=>{
+        const el=document.createElement('article');
+        el.className='card'; el.tabIndex=0; el.role='button'; el.dataset.route=`project:${p.id}`;
+        const chips=(p.tags||[]).map((t,i)=>`<span class="badge badge--${['orange','blue','emerald','teal','purple','gray'][i%6]}">${t}</span>`).join('');
+        el.innerHTML = `
+          <h4>${p.name}</h4>
+          <div class="meta">Last update: ${humanizeDays(p.updated_days)} • ${p.focus}</div>
+          <div class="tags" style="margin-top:12px">${chips}</div>
+          <div class="tags" style="margin-top:12px">
+            <button class="btn" data-route="project-settings:${p.id}">Settings</button>
+            <button class="btn" data-route="project:${p.id}">Open</button>
+          </div>
+        `;
+        grid.appendChild(el);
+      });
+
+      empty.style.display = pageItems.length ? 'none' : 'flex';
+
+      // Pagination
+      pager.style.display = filtered.length > PAGE_SIZE ? 'flex' : 'none';
+      pagesEl.innerHTML = '';
+      for(let i=1;i<=Math.ceil(filtered.length / PAGE_SIZE);i++){
+        const b=document.createElement('button');
+        b.className='pagebtn'; b.textContent=i;
+        if(i===currentPage) b.setAttribute('aria-current','page');
+        b.addEventListener('click', ()=>{ currentPage=i; render(); });
+        pagesEl.appendChild(b);
+      }
+
+      document.getElementById('prevPage').disabled = currentPage===1;
+      document.getElementById('nextPage').disabled = currentPage===Math.ceil(filtered.length / PAGE_SIZE);
+    }
+
+    document.getElementById('prevPage').addEventListener('click', ()=>{ currentPage=Math.max(1,currentPage-1); render(); });
+    document.getElementById('nextPage').addEventListener('click', ()=>{ currentPage=currentPage+1; render(); });
+
+    // Keyboard activation for cards
+    document.addEventListener('keydown', e=>{
+      if((e.key==='Enter'||e.key===' ')){
+        const el = e.target.closest('[data-route]');
+        if(el){ e.preventDefault(); demoRoute(el.dataset.route); }
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
