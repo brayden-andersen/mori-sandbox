@@ -12,7 +12,7 @@
       --ink:#0f172a; --muted:#475569;
       --panel-shadow: 0 8px 24px rgba(15,23,42,0.06);
       --radius: 18px;
-      --navH: 72px;
+      --navH: 72px;      /* still measured for sticky subnav */
       --topOffset: 150px;
       --accent:#3b82f6;
     }
@@ -23,7 +23,7 @@
       color:var(--ink); background:var(--bg); overflow-x:hidden;
     }
 
-    /* ===== Background aura (same as home) ===== */
+    /* ===== Background aura ===== */
     .aura{position:fixed; inset:0; z-index:-2; background:
       radial-gradient(1300px 900px at 18% 22%, rgba(96,165,250,0.38), transparent 62%),
       radial-gradient(1300px 900px at 82% 78%, rgba(255,153,79,0.40), transparent 62%),
@@ -41,26 +41,39 @@
     .aura::after{animation-duration:34s; animation-direction:reverse; opacity:.6}
     @keyframes radiate{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.08) rotate(12deg)}}
 
-    /* ===== Nav (carry-over) ===== */
+    /* ===== Nav (glassy, flush) ===== */
     .nav{
       position:fixed; top:0; left:0; right:0; z-index:1000;
       display:flex; justify-content:center;
-      background: rgba(255,255,255,0);
+      background: rgba(255,255,255,0.14);
       backdrop-filter: blur(12px) saturate(120%);
       -webkit-backdrop-filter: blur(12px) saturate(120%);
     }
     .nav-inner{ width:min(1120px,96%); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px; }
-    .brand{ display:flex; align-items:center; gap:10px; font-weight:600; letter-spacing:.2px }
+
+    /* Brand is now an anchor; keep same look */
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:600; letter-spacing:.2px;
+      color:inherit; text-decoration:none;
+    }
+    .brand:visited{ color:inherit; }
     .brand svg{ width:22px; height:22px }
     .brand-name{ opacity:.92 }
+    .brand:focus-visible{
+      outline:none; box-shadow:0 0 0 3px rgba(59,130,246,.35); border-radius:10px;
+    }
+
     .menu{ display:flex; gap:8px; align-items:center; isolation:isolate; position:relative; }
     .item{ position:relative; padding-bottom:12px }
     .nav-btn{
+      display:inline-flex; align-items:center; gap:10px;
       appearance:none; border:1px solid transparent; background:transparent; color:var(--ink);
       font-weight:500; letter-spacing:.2px; font-size:14px; padding:10px 14px; border-radius:12px; cursor:pointer;
-      transition: color .12s ease, opacity .12s ease, background .12s ease, box-shadow .12s ease; opacity:.92;
+      transition: color .12s ease, opacity .12s ease, background .12s ease, box-shadow .12s ease; opacity:.92; text-decoration:none;
     }
     .nav-btn:hover{ opacity:.75; background: rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.28); }
+
     .dropdown{
       position:absolute; top: calc(80% + 6px); left:0; min-width:240px;
       background: linear-gradient(to bottom right, rgba(148,163,184,.22), rgba(255,255,255,.54));
@@ -75,7 +88,7 @@
     .drop-link:hover{ background: linear-gradient(to bottom right, rgba(148,163,184,.18), rgba(255,255,255,.78)); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.92), 0 6px 14px rgba(15,23,42,0.06); backdrop-filter: blur(6px); }
 
     /* ===== Layout ===== */
-    .wrap{ max-width:1120px; margin:0 auto; padding: calc(var(--navH) + 24px + var(--topOffset)) 18px 96px; }
+    .wrap{ max-width:1120px; margin:0 auto; padding: 100px 18px 96px; } /* requested fixed padding */
 
     /* ===== Header / Breadcrumbs ===== */
     .pagehead{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding: 12px 4px 4px; }
@@ -97,13 +110,11 @@
     .chip{ font-size:12px; padding:6px 10px; border-radius:999px; cursor:pointer; user-select:none; border:1px solid #e5e7eb; background:#fff; color:#334155; }
     .chip[data-active="true"]{ background: rgba(59,130,246,.10); border-color: rgba(59,130,246,.28); color:#1e3a8a; }
     .sort{ display:flex; gap:8px; align-items:center; }
-    .select{
-      appearance:none; border:1px solid #e5e7eb; background:#fff; padding:9px 12px; border-radius:12px; font-size:14px;
-    }
+    .select{ appearance:none; border:1px solid #e5e7eb; background:#fff; padding:9px 12px; border-radius:12px; font-size:14px; }
     .btn{
       appearance:none; border:1px solid rgba(255,255,255,.92); background: linear-gradient(to bottom right, rgba(148,163,184,.16), rgba(255,255,255,.72));
       padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer; box-shadow: var(--panel-shadow);
-      transition:.15s; backdrop-filter: blur(8px);
+      transition:.15s; backdrop-filter: blur(8px); text-decoration:none; color:inherit;
     }
     .btn:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(15,23,42,.10); }
 
@@ -131,9 +142,7 @@
     .badge--gray{background: rgba(148,163,184,.12); border:1px solid rgba(148,163,184,.28); color:#334155}
 
     /* ===== Empty state ===== */
-    .empty{
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:40px 10px; text-align:center; color:#475569;
-    }
+    .empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:40px 10px; text-align:center; color:#475569; }
 
     /* ===== Pagination ===== */
     .pager{ display:flex; align-items:center; justify-content:space-between; margin-top:14px; gap:10px; }
@@ -145,7 +154,7 @@
 
     /* ===== Footer (carry-over) ===== */
     .footer{ margin-top: 40px; padding: 32px 18px 20px; background: rgba(255,255,255,0.66);
-      border-top: 1px solid rgba(255,255,255,0.8); box-shadow: 0 -6px 18px rgba(15,23,42,0.04) inset;
+      border-top: 1px solid rgba(15,23,42,0.08); box-shadow: 0 -6px 18px rgba(15,23,42,0.04) inset;
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
     .footer-inner{ max-width:1120px; margin:0 auto; }
@@ -172,12 +181,14 @@
   <!-- NAV -->
   <nav class="nav" id="topNav">
     <div class="nav-inner">
-      <div class="brand">
+      <!-- brand is a link back to homepage.html -->
+      <a href="index.html" class="brand" aria-label="Mori: Sandbox — go to homepage">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.88L18.18 22 12 18.77 5.82 22 7 14.15l-5-4.88 6.91-1.01L12 2z"/>
         </svg>
         <div class="brand-name">Mori: Sandbox</div>
-      </div>
+      </a>
+
       <div class="menu">
         <div class="item">
           <button class="nav-btn" data-route="home">Home</button>
@@ -218,7 +229,7 @@
     <header class="pagehead" role="banner">
       <div>
         <nav class="crumbs" aria-label="Breadcrumb">
-          <a href="#" data-route="home">Home</a> <span class="sep">/</span> <span>Projects</span>
+          <a href="homepage.html">Home</a> <span class="sep">/</span> <span>Projects</span>
         </nav>
         <h1 class="title">Projects</h1>
         <p class="meta" id="countMeta">Loading…</p>
@@ -301,7 +312,7 @@
     const USER_NAME = "Brayden";
     document.querySelectorAll('#year').forEach(n=>n.textContent = new Date().getFullYear());
 
-    // Nav height -> push content down
+    // Measure nav height for sticky subnav offset (wrap uses fixed padding)
     function setNavHeight(){
       const nav = document.getElementById('topNav');
       if(!nav) return;
@@ -310,7 +321,7 @@
     }
     setNavHeight(); window.addEventListener('resize', setNavHeight);
 
-    // Demo toast + routing stub (same pattern as home)
+    // Demo toast + routing stub
     function toast(msg){
       const box=document.getElementById('toastbox')||(()=>{const b=document.createElement('div');b.id='toastbox';Object.assign(b.style,{position:'fixed',bottom:'22px',left:'50%',transform:'translateX(-50%)',zIndex:9999});document.body.appendChild(b);return b;})();
       const n=document.createElement('div');n.textContent=msg;n.setAttribute('role','status');
@@ -319,7 +330,11 @@
     }
     function demoRoute(path){ toast(`Routing to ${path}…`); }
 
+    // Allow real <a href> to navigate normally; only intercept data-route
     document.addEventListener('click', e=>{
+      const realLink = e.target.closest('a[href]');
+      if (realLink) return;
+
       const routeEl=e.target.closest('[data-route]');
       if(routeEl){ demoRoute(routeEl.dataset.route); }
     });
@@ -341,13 +356,12 @@
       { id:"p12", name:"Growth Playbook",              tags:["Growth"],                   updated_days:9,  focus:"TOFU channels" }
     ];
 
-    // Build Projects menu (like home)
+    // Build Projects menu
     const projectsMenu = document.querySelector('#projectsMenu');
     if(projectsMenu){
       projectsMenu.innerHTML = ALL.slice(0,6).map(p=>`<a class="drop-link" href="#" data-route="project:${p.id}">${p.name}</a>`).join('');
     }
 
-    // ===== Controls =====
     const grid = document.getElementById('grid');
     const empty = document.getElementById('empty');
     const pager = document.getElementById('pager');
@@ -371,6 +385,7 @@
       chip.addEventListener('click', ()=>{
         if(activeTags.has(tag)) activeTags.delete(tag); else activeTags.add(tag);
         chip.dataset.active = activeTags.has(tag) ? 'true' : 'false';
+        currentPage = 1;
         render();
       });
       filterChips.appendChild(chip);
@@ -465,6 +480,8 @@
     // Keyboard activation for cards
     document.addEventListener('keydown', e=>{
       if((e.key==='Enter'||e.key===' ')){
+        const link = e.target.closest('a[href]');
+        if(link) return; // let browser handle real links
         const el = e.target.closest('[data-route]');
         if(el){ e.preventDefault(); demoRoute(el.dataset.route); }
       }
